@@ -22,11 +22,13 @@ def pos_counter(lines):
                     seen[s] = 1
     return seen
 
+
 def puzzle_one(lines):
     print("December 3, First puzzle")
     seen = pos_counter(lines)
     seen_twice = {k: v for k, v in seen.items() if v > 1}
     print("Square inches of double claimed fabric is {}".format(len(seen_twice)))
+
 
 def puzzle_two(lines):
     print("December 3, Second puzzle")
@@ -43,7 +45,6 @@ def puzzle_two(lines):
                         found = False
         if found:
             print("id of correct part {}".format(id))
-
 
 
 if __name__ == '__main__':
