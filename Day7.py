@@ -25,19 +25,43 @@ def update_blocking(blocking, tasks, completed_tasks):
                     del blocking[task]
     return blocking
 
-def update_workers(workers):
-    for i in range(len(workers)):
-        workers[i][0] = max(workers[i][0] - 1, 0)
-    return workers
+def getActiveTasks(workers):
+    out = []
+    for worker in workers:
+        if worker.task is not None:
+            out.append(worker.task)
+    return out
 
 def task_time(task):
     return ord(task) - 4
+
+class Worker():
+    def __init__(self):
+        self.task = None
+        self.time = 0
+
+    def step(self):
+        self.time = max(self.time - 1, 0)
+        if self.time == 0:
+            completed = self.task
+            self.task = None
+            return completed
+
+    def isReady(self):
+        return self.time == 0
+
+    def setTask(self, task):
+        self.task = task
+        self.time = ord(task) - 4
+
+    def __str__(self):
+        return "{}:{}".format(self.task, self.time)
 
 
 def puzzle_one(lines):
     print("December 7, First puzzle")
     seq = []
-    tasks, blocking = parseInput(lines)
+    tasks, pre_req = parseInput(lines)
 
     while len(seq) < len(tasks):
         ready = [x for x in tasks if x not in blocking and x not in seq]
@@ -51,36 +75,45 @@ def puzzle_one(lines):
 def puzzle_two(lines):
     print("December 7, Second puzzle")
     seq = []
-    workers = [[0, None], [0, None], [0, None], [0, None], [0, None]]
+    workers = [Worker() for _ in range(5)]
     tasks, blocking = parseInput(lines)
-    active_tasks = []
+
+    t = 0
     while len(seq) < len(tasks):
-        ready = [x for x in tasks if x not in blocking and x not in seq and x not in active_tasks]
+
+        # Find ready tasks
+        ready = [x for x in tasks if x not in blocking and x not in seq and x not in getActiveTasks(workers)]
+
+        # Assign workers
         for current_task in ready:
-            for i in range(len(workers)):
-                if workers[i][1] is None:
-                    workers[i] = [task_time(current_task), current_task]
-                    active_tasks.append(current_task)
+            for worker in workers:
+                if worker.isReady():
+                    worker.setTask(current_task)
                     break
 
-        completed_tasks = [x for (time, x) in workers if time == 0 and x is not None]
-        blocking = update_blocking(blocking, tasks, completed_tasks)
-        for completed_task in completed_tasks:
-            seq.append(completed_task)
+        # Take step in time
+        finished_tasks = []
+        for worker in workers:
+            step_out = worker.step()
+            if step_out is not None:
+                finished_tasks.append(step_out)
+        t += 1
 
-        for i in range(len(workers)):
-            if workers[i][1] in completed_tasks:
-                workers[i][1] = None
+        # Check if some task is finished
+        for finished_task in finished_tasks:
+                seq.append(finished_task)
+                update_blocking(blocking, tasks, seq)
+        print("{}: {}, {}, {}, {}, {}".format(t, workers[0], workers[1], workers[2], workers[3], workers[4]))
 
-        update_workers(workers)
+    print(t)
     print(''.join(seq))
 
 
 if __name__ == '__main__':
     lines = [line.rstrip('\n') for line in open('inputs/day7.txt')]
-    lines = ['Step C must be finished before step A can begin.', 'Step C must be finished before step F can begin.',
-             'Step A must be finished before step B can begin.', 'Step A must be finished before step D can begin.',
-             'Step B must be finished before step E can begin.', 'Step D must be finished before step E can begin.',
-             'Step F must be finished before step E can begin.']
-    puzzle_one(lines)
+    # lines = ['Step C must be finished before step A can begin.', 'Step C must be finished before step F can begin.',
+    #          'Step A must be finished before step B can begin.', 'Step A must be finished before step D can begin.',
+    #          'Step B must be finished before step E can begin.', 'Step D must be finished before step E can begin.',
+    #          'Step F must be finished before step E can begin.']
+    # puzzle_one(lines)
     puzzle_two(lines)
