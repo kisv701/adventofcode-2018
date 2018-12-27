@@ -1,4 +1,3 @@
-
 class Circle():
     def __init__(self):
         self.arr = [0]
@@ -51,3 +50,4 @@ if __name__ == '__main__':
     data = [(9, 25), (10, 1618), (13, 7999), (17, 1104), (21, 6111), (30, 5807), (446, 71522*100)]
     puzzle_one(data[-1])
     puzzle_two(data)
+
